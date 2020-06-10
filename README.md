@@ -1,5 +1,7 @@
 # eslint-plugin-listeners
 
+![Test](https://github.com/foad/eslint-plugin-listeners/workflows/Test/badge.svg)
+
 This project aims to provide formatting rules to prevent memory leaks around event listeners
 
 ## Installation
