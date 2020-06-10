@@ -1,0 +1,54 @@
+{
+  "name": "eslint-plugin-listeners",
+  "version": "1.0.0",
+  "description": "ESLint plugin for preventing memory leaks around event listeners",
+  "main": "lib/index.js",
+  "scripts": {
+    "build": "tsc",
+    "lint": "eslint . --color",
+    "test": "yarn build && node tests/lib/rules/*.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git@github.com:foad/eslint-plugin-listeners"
+  },
+  "keywords": [
+    "eslint",
+    "eslint-plugin",
+    "eslintplugin",
+    "event",
+    "listeners",
+    "event-listeners"
+  ],
+  "author": "Dan Foad",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/foad/eslint-plugin-listeners/issues"
+  },
+  "homepage": "https://github.com/foad/eslint-plugin-listeners#readme",
+  "private": false,
+  "peerDependencies": {
+    "eslint": ">=0.8.0"
+  },
+  "devDependencies": {
+    "@types/eslint": "^6.8.1",
+    "@types/estree": "0.0.39",
+    "@types/node": "^14.0.12",
+    "@typescript-eslint/eslint-plugin": "^3.2.0",
+    "@typescript-eslint/parser": "^3.2.0",
+    "babel-eslint": "^10.1.0",
+    "eslint": "^7.2.0",
+    "eslint-config-prettier": "^6.11.0",
+    "eslint-import-resolver-typescript": "^2.0.0",
+    "eslint-plugin-import": "^2.21.1",
+    "eslint-plugin-prettier": "^3.1.3",
+    "prettier": "^2.0.5",
+    "typescript": "^3.9.5"
+  },
+  "engines": {
+    "node": ">=8.10.0"
+  },
+  "precommit": [
+    "lint"
+  ]
+}
