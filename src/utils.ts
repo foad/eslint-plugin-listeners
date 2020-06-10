@@ -1,9 +1,9 @@
 import { Expression, MemberExpression, Super, Identifier } from 'estree';
 
 export enum RuleType {
-  MissingRemoveEventListener = 'missing-remove-event-listener',
+  MissingRemoveEventListener = 'no-missing-remove-event-listener',
   MatchingRemoveEventListener = 'matching-remove-event-listener',
-  InlineFunctionEventListener = 'inline-function-event-listener',
+  InlineFunctionEventListener = 'no-inline-function-event-listener',
 }
 
 export const isNodeIdentifier = (node: Expression | Super): boolean => node?.type === 'Identifier';

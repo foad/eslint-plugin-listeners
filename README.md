@@ -64,7 +64,7 @@ We also support a "strict" settings which enabled all of the rules for you
 
 - [no-missing-remove-event-listener](docs/rules/no-missing-remove-event-listener.md)
 - [matching-remove-event-listener](docs/rules/matching-remove-event-listener.md)
-- [no-inline-function-event-listener](docs/rules/inline-function-event-listener.md)
+- [no-inline-function-event-listener](docs/rules/no-inline-function-event-listener.md)
 
 ## Credits
 
