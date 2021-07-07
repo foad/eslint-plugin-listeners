@@ -131,7 +131,7 @@ const programListener = (ruleName: RuleType, listeners: Listeners, context: Rule
           break;
 
         case RuleType.MatchingRemoveEventListener:
-          if (removeEvents[eventName].func !== func) {
+          if (removeEvents?[eventName].func !== func) {
             reportListenersDoNoMatch(context, element, eventName, func, event.func, loc);
           }
           break;
