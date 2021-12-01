@@ -53,12 +53,12 @@ class App {
 
   componentDidMount() {
     this.rootNodeRef.addEventListener('click', this.handleRootNodeClick)
-    this.rootNodeRef.addEventListener('clack', handleClickClack)
+    this.rootNodeRef.addEventListener('clack', handleClack)
   }
 
   componentWillUnmount() {
     this.rootNodeRef.removeEventListener('click', this.handleRootNodeClick)
-    this.rootNodeRef.removeEventListener('clack', handleClickClack)
+    this.rootNodeRef.removeEventListener('clack', handleClack)
   }
 
   render() {
