@@ -3,12 +3,13 @@ const createRule = require('../../../lib/rules/event-listener').createRule;
 const RuleType = require('../../../lib/utils').RuleType;
 
 const ruleTester = new RuleTester({
-  parser: require.resolve("babel-eslint"),
+  parser: require.resolve('babel-eslint'),
 });
 
 ruleTester.run('no-missing-remove-event-listener', createRule(RuleType.MissingRemoveEventListener), {
-  valid: [{
-    code: `
+  valid: [
+    {
+      code: `
     const handleClack = () => {
       console.log('click clack')
     }
@@ -20,7 +21,6 @@ ruleTester.run('no-missing-remove-event-listener', createRule(RuleType.MissingRe
 
       componentDidMount() {
         this.rootNodeRef.addEventListener('click', this.handleRootNodeClick)
-        this.rootNodeRef.addEventListener('clack', handleClickClack)
       }
 
       componentWillUnmount() {
@@ -35,7 +35,32 @@ ruleTester.run('no-missing-remove-event-listener', createRule(RuleType.MissingRe
       }
     }
     `,
-  }],
+    },
+    {
+      code: `
+    const handleClack = () => {
+      console.log('click clack')
+    }
+
+    class App {
+      handleRootNodeClick = () => {
+        console.log('click') // eslint-disable-line no-console
+      }
+
+      componentDidMount() {
+        this.rootNodeRef.addEventListener('click', this.handleRootNodeClick, { once: true })
+        this.rootNodeRef.addEventListener('clack', handleClickClack, { once: true })
+      }
+
+      render() {
+        return (
+          <div ref={node => this.rootNodeRef = node} />
+        )
+      }
+    }
+    `,
+    },
+  ],
   invalid: [
     {
       code: `
@@ -55,9 +80,11 @@ ruleTester.run('no-missing-remove-event-listener', createRule(RuleType.MissingRe
           }
         }
       `,
-      errors: [{
-        message: 'click on this.rootNodeRef does not have a corresponding removeEventListener',
-      }],
+      errors: [
+        {
+          message: 'click on this.rootNodeRef does not have a corresponding removeEventListener',
+        },
+      ],
     },
     {
       code: `
@@ -85,9 +112,11 @@ ruleTester.run('no-missing-remove-event-listener', createRule(RuleType.MissingRe
           }
         }
       `,
-      errors: [{
-        message: 'click on this.rootNodeRef does not have a corresponding removeEventListener',
-      }],
+      errors: [
+        {
+          message: 'click on this.rootNodeRef does not have a corresponding removeEventListener',
+        },
+      ],
     },
     {
       code: `
@@ -111,9 +140,11 @@ ruleTester.run('no-missing-remove-event-listener', createRule(RuleType.MissingRe
           }
         }
       `,
-      errors: [{
-        message: 'click on this.rootNodeRef does not have a corresponding removeEventListener',
-      }],
+      errors: [
+        {
+          message: 'click on this.rootNodeRef does not have a corresponding removeEventListener',
+        },
+      ],
     },
   ],
-})
+});

@@ -26,6 +26,7 @@ interface ListenedElements {
     [key: string]: {
       func: string;
       loc: SourceLocation;
+      isOnce?: boolean;
     };
   };
 }
@@ -33,6 +34,17 @@ interface ListenedElements {
 interface Listeners {
   [ListenerType.ADD_EVENT_LISTENER]?: ListenedElements;
   [ListenerType.REMOVE_EVENT_LISTENER]?: ListenedElements;
+}
+
+interface HandlerParameters {
+  properties: {
+    key: {
+      name: string;
+    };
+    value: {
+      value: boolean;
+    };
+  }[];
 }
 
 const reportMissingListener = (context: Rule.RuleContext, element: string, eventName: string, loc: SourceLocation) => {
@@ -72,12 +84,22 @@ const reportProhibitedListener = (
 const callExpressionListener = (listeners: Listeners) => (node: BaseCallExpression) => {
   if (isNodeMemberExpression(node.callee)) {
     const callee: MemberExpression = <MemberExpression>node.callee;
-    const listenerType = (<Identifier>callee.property)?.name;
+    const listenerType = (<Identifier>callee.property)?.name as ListenerType;
 
-    if ([ListenerType.ADD_EVENT_LISTENER, ListenerType.REMOVE_EVENT_LISTENER].includes(<ListenerType>listenerType)) {
+    if ([ListenerType.ADD_EVENT_LISTENER, ListenerType.REMOVE_EVENT_LISTENER].includes(listenerType)) {
       const element = parseMemberExpression(callee);
       const eventName = (<SimpleLiteral>node.arguments[0]).value;
       const handler = <Expression>node.arguments[1];
+
+      if (listenerType === ListenerType.ADD_EVENT_LISTENER) {
+        const params = (node.arguments?.[2] as HandlerParameters)?.properties;
+        if (params && params.length) {
+          const isOnce = params.some((param) => param.key.name === 'once' && param.value.value);
+          if (isOnce) {
+            return;
+          }
+        }
+      }
 
       let func: string;
 

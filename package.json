@@ -6,7 +6,7 @@
   "scripts": {
     "build": "tsc",
     "lint": "eslint . --color",
-    "test": "yarn build && node tests/lib/rules/*.js"
+    "test": "yarn build && node tests/lib/rules/no-missing-remove-event-listener.js && node tests/lib/rules/no-inline-function-event-listener.js && node tests/lib/rules/matching-remove-event-listener.js"
   },
   "repository": {
     "type": "git",
