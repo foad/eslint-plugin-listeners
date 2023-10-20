@@ -1,14 +1,25 @@
-const { RuleTester } = require('eslint');
-const createRule = require('../../../lib/rules/event-listener').createRule;
-const RuleType = require('../../../lib/utils').RuleType;
-
-const ruleTester = new RuleTester({
-  parser: require.resolve("babel-eslint"),
+"use strict";
+var __importDefault = (this && this.__importDefault) || function (mod) {
+    return (mod && mod.__esModule) ? mod : { "default": mod };
+};
+Object.defineProperty(exports, "__esModule", { value: true });
+const mocha_1 = __importDefault(require("mocha"));
+const rule_tester_1 = require("@typescript-eslint/rule-tester");
+const event_listener_1 = require("../../../src/rules/event-listener");
+const utils_1 = require("../../../src/utils");
+rule_tester_1.RuleTester.afterAll = mocha_1.default.after;
+const ruleTester = new rule_tester_1.RuleTester({
+    parserOptions: {
+        ecmaFeatures: {
+            jsx: true,
+        },
+    },
+    parser: '@typescript-eslint/parser',
 });
-
-ruleTester.run('inline-function-event-listener', createRule(RuleType.InlineFunctionEventListener), {
-  valid: [{
-    code: `
+ruleTester.run('inline-function-event-listener', (0, event_listener_1.createRule)(utils_1.RuleType.InlineFunctionEventListener), {
+    valid: [
+        {
+            code: `
       const handleClack = () => {
         console.log('click clack')
       }
@@ -35,10 +46,11 @@ ruleTester.run('inline-function-event-listener', createRule(RuleType.InlineFunct
         }
       }
     `,
-  }],
-  invalid: [
-    {
-      code: `
+        },
+    ],
+    invalid: [
+        {
+            code: `
         class App {
           handleRootNodeClick = () => {
             console.log('click')
@@ -70,16 +82,24 @@ ruleTester.run('inline-function-event-listener', createRule(RuleType.InlineFunct
           }
         }
       `,
-      errors: [
-        {
-          message: 'event handler for click on this.rootNodeRef is arrow function ' +
-            'arrow functions are prohibited as event handlers',
+            errors: [
+                {
+                    messageId: 'prohibitedListener',
+                    data: {
+                        element: 'this.rootNodeRef',
+                        eventName: 'click',
+                        type: 'arrow function',
+                    },
+                },
+                {
+                    messageId: 'prohibitedListener',
+                    data: {
+                        element: 'this.rootNodeRef',
+                        eventName: 'tap',
+                        type: 'plain function',
+                    },
+                },
+            ],
         },
-        {
-          message: 'event handler for tap on this.rootNodeRef is plain function ' +
-            'plain functions are prohibited as event handlers',
-        },
-      ],
-    },
-  ],
+    ],
 });

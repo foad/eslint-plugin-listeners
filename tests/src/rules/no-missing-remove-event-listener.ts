@@ -1,9 +1,16 @@
-const { RuleTester } = require('eslint');
-const createRule = require('../../../lib/rules/event-listener').createRule;
-const RuleType = require('../../../lib/utils').RuleType;
+import mocha from 'mocha';
+import { RuleTester } from '@typescript-eslint/rule-tester';
+import { createRule } from '../../../src/rules/event-listener';
+import { RuleType } from '../../../src/utils';
 
+RuleTester.afterAll = mocha.after;
 const ruleTester = new RuleTester({
-  parser: require.resolve('babel-eslint'),
+  parserOptions: {
+    ecmaFeatures: {
+      jsx: true,
+    },
+  },
+  parser: '@typescript-eslint/parser',
 });
 
 ruleTester.run('no-missing-remove-event-listener', createRule(RuleType.MissingRemoveEventListener), {
@@ -82,7 +89,11 @@ ruleTester.run('no-missing-remove-event-listener', createRule(RuleType.MissingRe
       `,
       errors: [
         {
-          message: 'click on this.rootNodeRef does not have a corresponding removeEventListener',
+          messageId: 'missingRemoveEventListener',
+          data: {
+            eventName: 'click',
+            element: 'this.rootNodeRef',
+          },
         },
       ],
     },
@@ -114,7 +125,11 @@ ruleTester.run('no-missing-remove-event-listener', createRule(RuleType.MissingRe
       `,
       errors: [
         {
-          message: 'click on this.rootNodeRef does not have a corresponding removeEventListener',
+          messageId: 'missingRemoveEventListener',
+          data: {
+            eventName: 'click',
+            element: 'this.rootNodeRef',
+          },
         },
       ],
     },
@@ -142,7 +157,11 @@ ruleTester.run('no-missing-remove-event-listener', createRule(RuleType.MissingRe
       `,
       errors: [
         {
-          message: 'click on this.rootNodeRef does not have a corresponding removeEventListener',
+          messageId: 'missingRemoveEventListener',
+          data: {
+            eventName: 'click',
+            element: 'this.rootNodeRef',
+          },
         },
       ],
     },

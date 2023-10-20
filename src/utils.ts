@@ -1,4 +1,4 @@
-import { Expression, MemberExpression, Super, Identifier } from 'estree';
+import type { TSESTree } from '@typescript-eslint/utils';
 
 export enum RuleType {
   MissingRemoveEventListener = 'no-missing-remove-event-listener',
@@ -6,26 +6,29 @@ export enum RuleType {
   InlineFunctionEventListener = 'no-inline-function-event-listener',
 }
 
-export const isNodeIdentifier = (node: Expression | Super): boolean => node?.type === 'Identifier';
-export const isNodeMemberExpression = (node: Expression | Super): boolean => node?.type === 'MemberExpression';
-export const isNodeThisExpression = (node: Expression | Super): boolean => node?.type === 'ThisExpression';
-export const isNodeFunctionExpression = (node: Expression | Super): boolean => node?.type === 'FunctionExpression';
-export const isNodeArrowFunctionExpression = (node: Expression | Super): boolean =>
+export const isNodeIdentifier = (node: TSESTree.Expression | TSESTree.Super): boolean => node?.type === 'Identifier';
+export const isNodeMemberExpression = (node: TSESTree.Expression | TSESTree.Super): boolean =>
+  node?.type === 'MemberExpression';
+export const isNodeThisExpression = (node: TSESTree.Expression | TSESTree.Super): boolean =>
+  node?.type === 'ThisExpression';
+export const isNodeFunctionExpression = (node: TSESTree.Expression | TSESTree.Super): boolean =>
+  node?.type === 'FunctionExpression';
+export const isNodeArrowFunctionExpression = (node: TSESTree.Expression | TSESTree.Super): boolean =>
   node?.type === 'ArrowFunctionExpression';
 
-export const parseMemberExpression = (node: MemberExpression): string => {
+export const parseMemberExpression = (node: TSESTree.MemberExpression): string => {
   let value;
 
   if (isNodeIdentifier(node.object)) {
-    value = (<Identifier>node.object).name;
+    value = (<TSESTree.Identifier>node.object).name;
   }
 
   if (isNodeMemberExpression(node.object)) {
-    value = parseMemberExpression(<MemberExpression>node.object);
+    value = parseMemberExpression(<TSESTree.MemberExpression>node.object);
   }
 
   if (isNodeThisExpression(node.object)) {
-    value = `this.${(<Identifier>node.property).name}`;
+    value = `this.${(<TSESTree.Identifier>node.property).name}`;
   }
 
   return value;

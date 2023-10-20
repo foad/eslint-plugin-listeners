@@ -1,5 +1,4 @@
-import { Rule } from 'eslint';
-import { BaseCallExpression, Expression, MemberExpression, Identifier, SimpleLiteral, SourceLocation } from 'estree';
+import type { TSESLint, TSESTree } from '@typescript-eslint/utils';
 
 import {
   isNodeMemberExpression,
@@ -25,7 +24,7 @@ interface ListenedElements {
   [key: string]: {
     [key: string]: {
       func: string;
-      loc: SourceLocation;
+      loc: TSESTree.SourceLocation;
       isOnce?: boolean;
     };
   };
@@ -47,49 +46,69 @@ interface HandlerParameters {
   }[];
 }
 
-const reportMissingListener = (context: Rule.RuleContext, element: string, eventName: string, loc: SourceLocation) => {
+const reportMissingListener = (
+  context: TSESLint.RuleContext<string, Array<unknown>>,
+  element: string,
+  eventName: string,
+  loc: TSESTree.SourceLocation
+) => {
   context.report({
     loc,
-    message: `${eventName} on ${element} does not have ` + 'a corresponding removeEventListener',
+    messageId: 'missingRemoveEventListener',
+    data: {
+      eventName,
+      element,
+    },
   });
 };
 
 const reportListenersDoNoMatch = (
-  context: Rule.RuleContext,
+  context: TSESLint.RuleContext<string, unknown[]>,
   element: string,
   eventName: string,
   add: string,
   remove: string,
-  loc: SourceLocation
+  loc: TSESTree.SourceLocation
 ) => {
   context.report({
     loc,
-    message: `${add} and ${remove} on ${element} for ${eventName} do not match`,
+    messageId: 'listenersDoNotMatch',
+    data: {
+      eventName,
+      element,
+      add,
+      remove,
+    },
   });
 };
 
 const reportProhibitedListener = (
-  context: Rule.RuleContext,
+  context: TSESLint.RuleContext<string, unknown[]>,
   element: string,
   eventName: string,
   type: string,
-  loc: SourceLocation
+  loc: TSESTree.SourceLocation
 ) => {
   context.report({
     loc,
-    message: `event handler for ${eventName} on ${element} is ${type} ` + `${type}s are prohibited as event handlers`,
+    messageId: 'prohibitedListener',
+    data: {
+      eventName,
+      element,
+      type,
+    },
   });
 };
 
-const callExpressionListener = (listeners: Listeners) => (node: BaseCallExpression) => {
+const callExpressionListener = (listeners: Listeners) => (node: TSESTree.CallExpression) => {
   if (isNodeMemberExpression(node.callee)) {
-    const callee: MemberExpression = <MemberExpression>node.callee;
-    const listenerType = (<Identifier>callee.property)?.name as ListenerType;
+    const callee: TSESTree.MemberExpression = <TSESTree.MemberExpression>node.callee;
+    const listenerType = (<TSESTree.Identifier>callee.property)?.name as ListenerType;
 
     if ([ListenerType.ADD_EVENT_LISTENER, ListenerType.REMOVE_EVENT_LISTENER].includes(listenerType)) {
       const element = parseMemberExpression(callee);
-      const eventName = (<SimpleLiteral>node.arguments[0]).value;
-      const handler = <Expression>node.arguments[1];
+      const eventName = (<TSESTree.Literal>node.arguments[0]).value;
+      const handler = <TSESTree.Expression>node.arguments[1];
 
       if (listenerType === ListenerType.ADD_EVENT_LISTENER) {
         const params = (node.arguments?.[2] as HandlerParameters)?.properties;
@@ -108,9 +127,9 @@ const callExpressionListener = (listeners: Listeners) => (node: BaseCallExpressi
       } else if (isNodeArrowFunctionExpression(handler)) {
         func = ARROW_FUNCTION;
       } else if (isNodeIdentifier(handler)) {
-        func = (<Identifier>handler).name;
+        func = (<TSESTree.Identifier>handler).name;
       } else {
-        func = parseMemberExpression(<MemberExpression>handler);
+        func = parseMemberExpression(<TSESTree.MemberExpression>handler);
       }
 
       const currentTypeListeners = listeners[<ListenerType>listenerType] || {};
@@ -128,58 +147,64 @@ const callExpressionListener = (listeners: Listeners) => (node: BaseCallExpressi
   }
 };
 
-const programListener = (ruleName: RuleType, listeners: Listeners, context: Rule.RuleContext) => () => {
-  const addListeners = listeners[ListenerType.ADD_EVENT_LISTENER] ?? {};
-  const removeListeners = listeners[ListenerType.REMOVE_EVENT_LISTENER] ?? {};
+const programListener =
+  (ruleName: RuleType, listeners: Listeners, context: TSESLint.RuleContext<string, unknown[]>) => () => {
+    const addListeners = listeners[ListenerType.ADD_EVENT_LISTENER] ?? {};
+    const removeListeners = listeners[ListenerType.REMOVE_EVENT_LISTENER] ?? {};
 
-  Object.keys(addListeners).forEach((element) => {
-    const addEvents = addListeners[element];
-    const removeEvents = removeListeners[element];
+    Object.keys(addListeners).forEach((element) => {
+      const addEvents = addListeners[element];
+      const removeEvents = removeListeners[element];
 
-    Object.entries(addEvents).forEach(([eventName, { func, loc }]) => {
-      const event = removeEvents?.[eventName];
+      Object.entries(addEvents).forEach(([eventName, { func, loc }]) => {
+        const event = removeEvents?.[eventName];
 
-      switch (ruleName) {
-        case RuleType.MissingRemoveEventListener:
-          if (!event) {
-            reportMissingListener(context, element, eventName, loc);
-          }
-          break;
+        switch (ruleName) {
+          case RuleType.MissingRemoveEventListener:
+            if (!event) {
+              reportMissingListener(context, element, eventName, loc);
+            }
+            break;
 
-        case RuleType.InlineFunctionEventListener:
-          if (isProhibitedHandler(func)) {
-            reportProhibitedListener(context, element, eventName, func, loc);
-          }
-          break;
+          case RuleType.InlineFunctionEventListener:
+            if (isProhibitedHandler(func)) {
+              reportProhibitedListener(context, element, eventName, func, loc);
+            }
+            break;
 
-        case RuleType.MatchingRemoveEventListener:
-          if (event && event.func !== func) {
-            reportListenersDoNoMatch(context, element, eventName, func, event.func, loc);
-          }
-          break;
-      }
+          case RuleType.MatchingRemoveEventListener:
+            if (event && event.func !== func) {
+              reportListenersDoNoMatch(context, element, eventName, func, event.func, loc);
+            }
+            break;
+        }
+      });
     });
-  });
-};
+  };
 
-export const createRule = (ruleName: RuleType): Rule.RuleModule => ({
+export const createRule = (ruleName: RuleType): TSESLint.RuleModule<string, unknown[]> => ({
   meta: {
+    type: 'problem',
     docs: {
       description: getDescription(ruleName),
-      category: 'Best Practices',
-      recommended: true,
+      recommended: 'recommended',
       url: 'https://github.com/foad/eslint-plugin-listeners',
+    },
+    messages: {
+      missingRemoveEventListener: '{{eventName}} on {{element}} does not have a corresponding removeEventListener',
+      listenersDoNotMatch: '{{add}} and {{remove}} on {{element}} for {{eventName}} do not match',
+      prohibitedListener:
+        'event handler for {{eventName}} on {{element}} is {{type}}, {{type}}s are prohibited as event handlers',
     },
     schema: [],
   },
-  create: (context: Rule.RuleContext): Rule.RuleListener => {
+  create: (context: TSESLint.RuleContext<string, unknown[]>): TSESLint.RuleListener => {
     const listeners: Listeners = {};
 
     return {
-      // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-      // @ts-ignore
       'CallExpression:exit': callExpressionListener(listeners),
       'Program:exit': programListener(ruleName, listeners, context),
     };
   },
+  defaultOptions: [],
 });

@@ -1,43 +1,51 @@
-const { RuleTester } = require('eslint');
-const createRule = require('../../../lib/rules/event-listener').createRule;
-const RuleType = require('../../../lib/utils').RuleType;
+import mocha from 'mocha';
+import { RuleTester } from '@typescript-eslint/rule-tester';
+import { createRule } from '../../../src/rules/event-listener';
+import { RuleType } from '../../../src/utils';
 
+RuleTester.afterAll = mocha.after;
 const ruleTester = new RuleTester({
-  parser: require.resolve("babel-eslint"),
+  parserOptions: {
+    ecmaFeatures: {
+      jsx: true,
+    },
+  },
+  parser: '@typescript-eslint/parser',
 });
 
 ruleTester.run('matching-remove-event-listener', createRule(RuleType.MatchingRemoveEventListener), {
-  valid: [{
-    code: `
+  valid: [
+    {
+      code: `
       const handleClack = () => {
         console.log('click clack')
       }
 
       class App {
         handleRootNodeClick = () => {
-          console.log('click') // eslint-disable-line no-console
+          console.log('click')
         }
 
         componentDidMount() {
           this.rootNodeRef.addEventListener('click', this.handleRootNodeClick)
-          this.rootNodeRef.addEventListener('clack', handleClickClack)
+          this.rootNodeRef.addEventListener('clack', handleClack)
         }
 
         componentWillUnmount() {
           this.rootNodeRef.removeEventListener('click', this.handleRootNodeClick)
-          this.rootNodeRef.removeEventListener('clack', handleClickClack)
+          this.rootNodeRef.removeEventListener('clack', handleClack)
         }
 
         render() {
           return (
-            <div ref={node => this.rootNodeRef = node} />
+            <div ref={node => (this.rootNodeRef = node)} />
           )
         }
       }
     `,
-  },
-  {
-    code: `
+    },
+    {
+      code: `
       const clickHandler = () => {
         console.log('click')
       }
@@ -58,12 +66,13 @@ ruleTester.run('matching-remove-event-listener', createRule(RuleType.MatchingRem
 
         render() {
           return (
-            <div ref={node => this.rootNodeRef = node} />
+            <div ref={node => (this.rootNodeRef = node)} />
           )
         }
       }
     `,
-  }],
+    },
+  ],
   invalid: [
     {
       code: `
@@ -89,10 +98,17 @@ ruleTester.run('matching-remove-event-listener', createRule(RuleType.MatchingRem
           }
         }
       `,
-      errors: [{
-        message: 'this.handleRootNodeClick and this.handleRootNodeKeyPress ' +
-          'on window for click do not match',
-      }],
+      errors: [
+        {
+          messageId: 'listenersDoNotMatch',
+          data: {
+            add: 'this.handleRootNodeClick',
+            remove: 'this.handleRootNodeKeyPress',
+            element: 'window',
+            eventName: 'click',
+          },
+        },
+      ],
     },
     {
       code: `
@@ -115,14 +131,22 @@ ruleTester.run('matching-remove-event-listener', createRule(RuleType.MatchingRem
 
           render() {
             return (
-              <div ref={node => this.rootNodeRef = node} />
+              <div ref={node => (this.rootNodeRef = node)} />
             )
           }
         }
       `,
-      errors: [{
-        message: 'clickHandler and anotherClickHandler on this.rootNodeRef for click do not match',
-      }],
+      errors: [
+        {
+          messageId: 'listenersDoNotMatch',
+          data: {
+            add: 'clickHandler',
+            remove: 'anotherClickHandler',
+            element: 'this.rootNodeRef',
+            eventName: 'click',
+          },
+        },
+      ],
     },
   ],
 });

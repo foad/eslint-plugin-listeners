@@ -52,7 +52,7 @@ You can use our "recommended" settings which enables most of the rules for you
 }
 ```
 
-We also support a "strict" settings which enabled all of the rules for you
+We also support a "strict" settings which enables all of the rules for you
 
 ```json
 {
