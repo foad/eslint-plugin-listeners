@@ -148,5 +148,72 @@ ruleTester.run('matching-remove-event-listener', createRule(RuleType.MatchingRem
         },
       ],
     },
+    {
+      code: `
+        const clickHandler = () => {
+          console.log('click')
+        }
+
+        class App {
+          componentDidMount() {
+            this.rootNodeRef.addEventListener('click', clickHandler, true)
+          }
+
+          componentWillUnmount() {
+            this.rootNodeRef.removeEventListener('click', clickHandler)
+          }
+
+          render() {
+            return (
+              <div ref={node => (this.rootNodeRef = node)} />
+            )
+          }
+        }
+      `,
+      errors: [
+        {
+          messageId: 'listenersDoNotMatchUseCapture',
+          data: {
+            remove: 'clickHandler',
+            element: 'this.rootNodeRef',
+            eventName: 'click',
+          },
+        },
+      ],
+    },
+    {
+      code: `
+        const clickHandler = () => {
+          console.log('click')
+        }
+
+        class App {
+          componentDidMount() {
+            const useCapture = true;
+            this.rootNodeRef.addEventListener('click', clickHandler, useCapture)
+          }
+
+          componentWillUnmount() {
+            this.rootNodeRef.removeEventListener('click', clickHandler)
+          }
+
+          render() {
+            return (
+              <div ref={node => (this.rootNodeRef = node)} />
+            )
+          }
+        }
+      `,
+      errors: [
+        {
+          messageId: 'listenersDoNotMatchUseCapture',
+          data: {
+            remove: 'clickHandler',
+            element: 'this.rootNodeRef',
+            eventName: 'click',
+          },
+        },
+      ],
+    },
   ],
 });

@@ -1,6 +1,6 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.getDescription = exports.parseMemberExpression = exports.isNodeArrowFunctionExpression = exports.isNodeFunctionExpression = exports.isNodeThisExpression = exports.isNodeMemberExpression = exports.isNodeIdentifier = exports.RuleType = void 0;
+exports.getDescription = exports.parseMemberExpression = exports.isArgumentIdentifier = exports.isArgumentLiteral = exports.isNodeArrowFunctionExpression = exports.isNodeFunctionExpression = exports.isNodeThisExpression = exports.isNodeMemberExpression = exports.isNodeIdentifier = exports.RuleType = void 0;
 var RuleType;
 (function (RuleType) {
     RuleType["MissingRemoveEventListener"] = "no-missing-remove-event-listener";
@@ -17,6 +17,10 @@ const isNodeFunctionExpression = (node) => (node === null || node === void 0 ? v
 exports.isNodeFunctionExpression = isNodeFunctionExpression;
 const isNodeArrowFunctionExpression = (node) => (node === null || node === void 0 ? void 0 : node.type) === 'ArrowFunctionExpression';
 exports.isNodeArrowFunctionExpression = isNodeArrowFunctionExpression;
+const isArgumentLiteral = (arg) => (arg === null || arg === void 0 ? void 0 : arg.type) === 'Literal';
+exports.isArgumentLiteral = isArgumentLiteral;
+const isArgumentIdentifier = (arg) => (arg === null || arg === void 0 ? void 0 : arg.type) === 'Identifier';
+exports.isArgumentIdentifier = isArgumentIdentifier;
 const parseMemberExpression = (node) => {
     let value;
     if ((0, exports.isNodeIdentifier)(node.object)) {

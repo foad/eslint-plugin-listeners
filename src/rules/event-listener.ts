@@ -8,6 +8,8 @@ import {
   parseMemberExpression,
   RuleType,
   getDescription,
+  isArgumentLiteral,
+  isArgumentIdentifier,
 } from '../utils';
 
 enum ListenerType {
@@ -26,6 +28,7 @@ interface ListenedElements {
       func: string;
       loc: TSESTree.SourceLocation;
       isOnce?: boolean;
+      hasUseCapture?: boolean;
     };
   };
 }
@@ -68,8 +71,20 @@ const reportListenersDoNoMatch = (
   eventName: string,
   add: string,
   remove: string,
-  loc: TSESTree.SourceLocation
+  loc: TSESTree.SourceLocation,
+  isUseCapture: boolean
 ) => {
+  if (isUseCapture) {
+    return context.report({
+      loc,
+      messageId: 'listenersDoNotMatchUseCapture',
+      data: {
+        remove,
+        element,
+        eventName,
+      },
+    });
+  }
   context.report({
     loc,
     messageId: 'listenersDoNotMatch',
@@ -140,6 +155,7 @@ const callExpressionListener = (listeners: Listeners) => (node: TSESTree.CallExp
           [<string>eventName]: {
             func,
             loc: node.loc,
+            hasUseCapture: isArgumentLiteral(node.arguments[2]) || isArgumentIdentifier(node.arguments[2]),
           },
         },
       };
@@ -156,7 +172,7 @@ const programListener =
       const addEvents = addListeners[element];
       const removeEvents = removeListeners[element];
 
-      Object.entries(addEvents).forEach(([eventName, { func, loc }]) => {
+      Object.entries(addEvents).forEach(([eventName, { func, loc, hasUseCapture }]) => {
         const event = removeEvents?.[eventName];
 
         switch (ruleName) {
@@ -174,7 +190,10 @@ const programListener =
 
           case RuleType.MatchingRemoveEventListener:
             if (event && event.func !== func) {
-              reportListenersDoNoMatch(context, element, eventName, func, event.func, loc);
+              reportListenersDoNoMatch(context, element, eventName, func, event.func, loc, false);
+            }
+            if (event && event.func === func && hasUseCapture && !event.hasUseCapture) {
+              reportListenersDoNoMatch(context, element, eventName, func, event.func, loc, hasUseCapture);
             }
             break;
         }
@@ -193,6 +212,8 @@ export const createRule = (ruleName: RuleType): TSESLint.RuleModule<string, unkn
     messages: {
       missingRemoveEventListener: '{{eventName}} on {{element}} does not have a corresponding removeEventListener',
       listenersDoNotMatch: '{{add}} and {{remove}} on {{element}} for {{eventName}} do not match',
+      listenersDoNotMatchUseCapture:
+        'removeEventListener {{remove}} on {{element}} for {{eventName}} is missing useCapture parameter',
       prohibitedListener:
         'event handler for {{eventName}} on {{element}} is {{type}}, {{type}}s are prohibited as event handlers',
     },

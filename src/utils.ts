@@ -15,6 +15,8 @@ export const isNodeFunctionExpression = (node: TSESTree.Expression | TSESTree.Su
   node?.type === 'FunctionExpression';
 export const isNodeArrowFunctionExpression = (node: TSESTree.Expression | TSESTree.Super): boolean =>
   node?.type === 'ArrowFunctionExpression';
+export const isArgumentLiteral = (arg: TSESTree.CallExpressionArgument): boolean => arg?.type === 'Literal';
+export const isArgumentIdentifier = (arg: TSESTree.CallExpressionArgument): boolean => arg?.type === 'Identifier';
 
 export const parseMemberExpression = (node: TSESTree.MemberExpression): string => {
   let value;

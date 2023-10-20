@@ -20,7 +20,18 @@ const reportMissingListener = (context, element, eventName, loc) => {
         },
     });
 };
-const reportListenersDoNoMatch = (context, element, eventName, add, remove, loc) => {
+const reportListenersDoNoMatch = (context, element, eventName, add, remove, loc, isUseCapture) => {
+    if (isUseCapture) {
+        return context.report({
+            loc,
+            messageId: 'listenersDoNotMatchUseCapture',
+            data: {
+                remove,
+                element,
+                eventName,
+            },
+        });
+    }
     context.report({
         loc,
         messageId: 'listenersDoNotMatch',
@@ -78,6 +89,7 @@ const callExpressionListener = (listeners) => (node) => {
             listeners[listenerType] = Object.assign(Object.assign({}, currentTypeListeners), { [element]: Object.assign(Object.assign({}, currentTypeListeners[element]), { [eventName]: {
                         func,
                         loc: node.loc,
+                        hasUseCapture: (0, utils_1.isArgumentLiteral)(node.arguments[2]) || (0, utils_1.isArgumentIdentifier)(node.arguments[2]),
                     } }) });
         }
     }
@@ -89,7 +101,7 @@ const programListener = (ruleName, listeners, context) => () => {
     Object.keys(addListeners).forEach((element) => {
         const addEvents = addListeners[element];
         const removeEvents = removeListeners[element];
-        Object.entries(addEvents).forEach(([eventName, { func, loc }]) => {
+        Object.entries(addEvents).forEach(([eventName, { func, loc, hasUseCapture }]) => {
             const event = removeEvents === null || removeEvents === void 0 ? void 0 : removeEvents[eventName];
             switch (ruleName) {
                 case utils_1.RuleType.MissingRemoveEventListener:
@@ -104,7 +116,10 @@ const programListener = (ruleName, listeners, context) => () => {
                     break;
                 case utils_1.RuleType.MatchingRemoveEventListener:
                     if (event && event.func !== func) {
-                        reportListenersDoNoMatch(context, element, eventName, func, event.func, loc);
+                        reportListenersDoNoMatch(context, element, eventName, func, event.func, loc, false);
+                    }
+                    if (event && event.func === func && hasUseCapture && !event.hasUseCapture) {
+                        reportListenersDoNoMatch(context, element, eventName, func, event.func, loc, hasUseCapture);
                     }
                     break;
             }
@@ -122,6 +137,7 @@ const createRule = (ruleName) => ({
         messages: {
             missingRemoveEventListener: '{{eventName}} on {{element}} does not have a corresponding removeEventListener',
             listenersDoNotMatch: '{{add}} and {{remove}} on {{element}} for {{eventName}} do not match',
+            listenersDoNotMatchUseCapture: 'removeEventListener {{remove}} on {{element}} for {{eventName}} is missing useCapture parameter',
             prohibitedListener: 'event handler for {{eventName}} on {{element}} is {{type}}, {{type}}s are prohibited as event handlers',
         },
         schema: [],
