@@ -47,6 +47,28 @@ ruleTester.run('inline-function-event-listener', (0, event_listener_1.createRule
       }
     `,
         },
+        {
+            code: `
+      const handleData = () => {
+        console.log('some data')
+      }
+      const handleError = (error) => {
+        console.log('some error', error)
+      }
+
+      class Handler {
+        constructor(private readonly emitter: EventEmitter) {
+          emitter.on('data', handleData)
+          emitter.on('error', handleError)
+        }
+
+        destroy() {
+          this.emitter.off('data', handleData)
+          this.emitter.off('error', handleError)       
+        }
+      }
+    `,
+        },
     ],
     invalid: [
         {
@@ -97,6 +119,37 @@ ruleTester.run('inline-function-event-listener', (0, event_listener_1.createRule
                         element: 'this.rootNodeRef',
                         eventName: 'tap',
                         type: 'plain function',
+                    },
+                },
+            ],
+        },
+        {
+            code: `
+      const handleData = () => {
+        console.log('some data')
+      }
+
+      class Handler {
+        constructor(private readonly emitter: EventEmitter) {
+          emitter.on('data', handleData)
+          emitter.on('error', (error) => {
+            console.log('some error', error)
+          })
+        }
+
+        destroy() {
+          this.emitter.off('data', handleData)
+          this.emitter.removeAllListeners()
+        }
+      }
+      `,
+            errors: [
+                {
+                    messageId: 'prohibitedListener',
+                    data: {
+                        element: 'emitter',
+                        eventName: 'error',
+                        type: 'arrow function',
                     },
                 },
             ],

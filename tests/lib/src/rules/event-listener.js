@@ -6,7 +6,14 @@ var ListenerType;
 (function (ListenerType) {
     ListenerType["ADD_EVENT_LISTENER"] = "addEventListener";
     ListenerType["REMOVE_EVENT_LISTENER"] = "removeEventListener";
+    ListenerType["ADD_LISTENER"] = "addListener";
+    ListenerType["REMOVE_LISTENER"] = "removeListener";
+    ListenerType["REMOVE_ALL_LISTENERS"] = "removeAllListeners";
+    ListenerType["ON_LISTENER"] = "on";
+    ListenerType["OFF_LISTENER"] = "off";
 })(ListenerType || (ListenerType = {}));
+const ADD_LISTENERS = [ListenerType.ADD_EVENT_LISTENER, ListenerType.ADD_LISTENER, ListenerType.ON_LISTENER];
+const REMOVE_LISTENERS = [ListenerType.REMOVE_EVENT_LISTENER, ListenerType.REMOVE_LISTENER, ListenerType.OFF_LISTENER];
 const PLAIN_FUNCTION = 'plain function';
 const ARROW_FUNCTION = 'arrow function';
 const isProhibitedHandler = (type) => type === PLAIN_FUNCTION || type === ARROW_FUNCTION;
@@ -59,9 +66,9 @@ const callExpressionListener = (listeners) => (node) => {
     if ((0, utils_1.isNodeMemberExpression)(node.callee)) {
         const callee = node.callee;
         const listenerType = (_a = callee.property) === null || _a === void 0 ? void 0 : _a.name;
-        if ([ListenerType.ADD_EVENT_LISTENER, ListenerType.REMOVE_EVENT_LISTENER].includes(listenerType)) {
+        if ([...ADD_LISTENERS, ...REMOVE_LISTENERS, ListenerType.REMOVE_ALL_LISTENERS].includes(listenerType)) {
             const element = (0, utils_1.parseMemberExpression)(callee);
-            const eventName = node.arguments[0].value;
+            const eventName = ListenerType.REMOVE_ALL_LISTENERS !== listenerType ? node.arguments[0].value : '_all_';
             const handler = node.arguments[1];
             if (listenerType === ListenerType.ADD_EVENT_LISTENER) {
                 const params = (_c = (_b = node.arguments) === null || _b === void 0 ? void 0 : _b[2]) === null || _c === void 0 ? void 0 : _c.properties;
@@ -82,7 +89,7 @@ const callExpressionListener = (listeners) => (node) => {
             else if ((0, utils_1.isNodeIdentifier)(handler)) {
                 func = handler.name;
             }
-            else {
+            else if (handler) {
                 func = (0, utils_1.parseMemberExpression)(handler);
             }
             const currentTypeListeners = listeners[listenerType] || {};
@@ -95,14 +102,19 @@ const callExpressionListener = (listeners) => (node) => {
     }
 };
 const programListener = (ruleName, listeners, context) => () => {
-    var _a, _b;
-    const addListeners = (_a = listeners[ListenerType.ADD_EVENT_LISTENER]) !== null && _a !== void 0 ? _a : {};
-    const removeListeners = (_b = listeners[ListenerType.REMOVE_EVENT_LISTENER]) !== null && _b !== void 0 ? _b : {};
+    var _a;
+    const addListenersPre = ADD_LISTENERS.map((listenerName) => { var _a; return (_a = listeners[listenerName]) !== null && _a !== void 0 ? _a : {}; });
+    const addListeners = Object.assign({}, ...addListenersPre);
+    const removeListenersPre = REMOVE_LISTENERS.map((listerName) => { var _a; return (_a = listeners[listerName]) !== null && _a !== void 0 ? _a : {}; });
+    const removeListeners = Object.assign({}, ...removeListenersPre);
+    const removeAllListeners = (_a = listeners[ListenerType.REMOVE_ALL_LISTENERS]) !== null && _a !== void 0 ? _a : {};
     Object.keys(addListeners).forEach((element) => {
         const addEvents = addListeners[element];
         const removeEvents = removeListeners[element];
+        const removeAllEvents = removeAllListeners[element];
         Object.entries(addEvents).forEach(([eventName, { func, loc, hasUseCapture }]) => {
-            const event = removeEvents === null || removeEvents === void 0 ? void 0 : removeEvents[eventName];
+            var _a;
+            const event = (_a = removeEvents === null || removeEvents === void 0 ? void 0 : removeEvents[eventName]) !== null && _a !== void 0 ? _a : removeAllEvents === null || removeAllEvents === void 0 ? void 0 : removeAllEvents[0];
             switch (ruleName) {
                 case utils_1.RuleType.MissingRemoveEventListener:
                     if (!event) {
@@ -110,15 +122,15 @@ const programListener = (ruleName, listeners, context) => () => {
                     }
                     break;
                 case utils_1.RuleType.InlineFunctionEventListener:
-                    if (isProhibitedHandler(func)) {
+                    if (isProhibitedHandler(func) && (!event || event.func !== undefined)) {
                         reportProhibitedListener(context, element, eventName, func, loc);
                     }
                     break;
                 case utils_1.RuleType.MatchingRemoveEventListener:
-                    if (event && event.func !== func) {
+                    if (event && event.func !== func && event.func !== undefined) {
                         reportListenersDoNoMatch(context, element, eventName, func, event.func, loc, false);
                     }
-                    if (event && event.func === func && hasUseCapture && !event.hasUseCapture) {
+                    if (event && event.func === func && hasUseCapture && !event.hasUseCapture && event.func !== undefined) {
                         reportListenersDoNoMatch(context, element, eventName, func, event.func, loc, hasUseCapture);
                     }
                     break;

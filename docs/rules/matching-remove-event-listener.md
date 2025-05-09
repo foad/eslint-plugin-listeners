@@ -6,6 +6,9 @@ This rule enforces that the handler for a `removeEventListener` is the same hand
 
 Note that if the `addListener` specifies the `useCapture` argument, so must the `removeEventListener` for it to match and be removed as expected
 
+EventEmitters with `addListener` and `removeListener` are also supported. If the `removeAllListeners` function is called, a matching
+`removeListener` is not required. The `on` and `off` alias are also supported.
+
 Examples of **incorrect** code for this rule:
 
 ```js
@@ -52,6 +55,24 @@ class App {
 }
 ```
 
+```js
+const emitter = new EventEmitter()
+
+const dataHandler = () => {
+  console.log('data')
+}
+const data2Handler = () => {
+  console.log('data')
+}
+
+emitter.on('data', dataHandler)
+
+emitter.once('close', () => {
+  console.log('close')
+  emitter.removeListener('data', dataHandler2)
+})
+```
+
 Examples of **correct** code for this rule:
 
 ```js
@@ -96,4 +117,22 @@ class App {
     return null;
   }
 }
+```
+
+```js
+const emitter = new EventEmitter()
+
+const dataHandler = () => {
+  console.log('data')
+}
+const data2Handler = () => {
+  console.log('data')
+}
+
+emitter.on('data', dataHandler)
+
+emitter.once('close', () => {
+  console.log('close')
+  emitter.removeListener('data', dataHandler)
+})
 ```
