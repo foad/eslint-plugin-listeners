@@ -70,6 +70,22 @@ ruleTester.run('no-missing-remove-event-listener', (0, event_listener_1.createRu
     }
     `,
         },
+        {
+            code: `
+      const emitter = new EventEmitter()
+
+      const dataHandler = () => {
+        console.log('data')
+      }
+
+      emitter.on('data', dataHandler)
+      
+      emitter.once('close', () => {
+        console.log('close')
+        emitter.off('data', dataHandler)
+      })
+      `,
+        },
     ],
     invalid: [
         {
@@ -164,6 +180,30 @@ ruleTester.run('no-missing-remove-event-listener', (0, event_listener_1.createRu
                     data: {
                         eventName: 'click',
                         element: 'this.rootNodeRef',
+                    },
+                },
+            ],
+        },
+        {
+            code: `
+      const emitter = new EventEmitter()
+
+      const dataHandler = () => {
+        console.log('data')
+      }
+
+      emitter.on('data', dataHandler)
+      
+      emitter.once('close', () => {
+        console.log('close')
+      })
+      `,
+            errors: [
+                {
+                    messageId: 'missingRemoveEventListener',
+                    data: {
+                        eventName: 'data',
+                        element: 'emitter',
                     },
                 },
             ],

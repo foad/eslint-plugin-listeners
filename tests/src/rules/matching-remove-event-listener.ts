@@ -72,6 +72,25 @@ ruleTester.run('matching-remove-event-listener', createRule(RuleType.MatchingRem
       }
     `,
     },
+    {
+      code: `
+      const emitter = new EventEmitter()
+
+      const dataHandler = () => {
+        console.log('data')
+      }
+      const data2Handler = () => {
+        console.log('data')
+      }
+
+      emitter.on('data', dataHandler)
+      
+      emitter.once('close', () => {
+        console.log('close')
+        emitter.removeListener('data', dataHandler)
+      })
+      `,
+    },
   ],
   invalid: [
     {
@@ -211,6 +230,36 @@ ruleTester.run('matching-remove-event-listener', createRule(RuleType.MatchingRem
             remove: 'clickHandler',
             element: 'this.rootNodeRef',
             eventName: 'click',
+          },
+        },
+      ],
+    },
+    {
+      code: `
+      const emitter = new EventEmitter()
+
+      const dataHandler = () => {
+        console.log('data')
+      }
+      const data2Handler = () => {
+        console.log('data')
+      }
+
+      emitter.on('data', dataHandler)
+      
+      emitter.once('close', () => {
+        console.log('close')
+        emitter.removeListener('data', dataHandler2)
+      })
+      `,
+      errors: [
+        {
+          messageId: 'listenersDoNotMatch',
+          data: {
+            add: 'dataHandler',
+            remove: 'dataHandler2',
+            element: 'emitter',
+            eventName: 'data',
           },
         },
       ],

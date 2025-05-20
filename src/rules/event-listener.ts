@@ -15,7 +15,17 @@ import {
 enum ListenerType {
   ADD_EVENT_LISTENER = 'addEventListener',
   REMOVE_EVENT_LISTENER = 'removeEventListener',
+  ADD_LISTENER = 'addListener',
+  REMOVE_LISTENER = 'removeListener',
+  REMOVE_ALL_LISTENERS = 'removeAllListeners',
+  ON_LISTENER = 'on',
+  OFF_LISTENER = 'off',
 }
+
+const ADD_LISTENERS = [ListenerType.ADD_EVENT_LISTENER, ListenerType.ADD_LISTENER, ListenerType.ON_LISTENER];
+type ADD_LISTENERS_TYPE = (typeof ADD_LISTENERS)[number];
+const REMOVE_LISTENERS = [ListenerType.REMOVE_EVENT_LISTENER, ListenerType.REMOVE_LISTENER, ListenerType.OFF_LISTENER];
+type REMOVE_LISTENERS_TYPE = (typeof REMOVE_LISTENERS)[number];
 
 const PLAIN_FUNCTION = 'plain function';
 const ARROW_FUNCTION = 'arrow function';
@@ -33,10 +43,9 @@ interface ListenedElements {
   };
 }
 
-interface Listeners {
-  [ListenerType.ADD_EVENT_LISTENER]?: ListenedElements;
-  [ListenerType.REMOVE_EVENT_LISTENER]?: ListenedElements;
-}
+type Listeners = {
+  [key in ADD_LISTENERS_TYPE | REMOVE_LISTENERS_TYPE | ListenerType.REMOVE_ALL_LISTENERS]?: ListenedElements;
+};
 
 interface HandlerParameters {
   properties: {
@@ -120,9 +129,10 @@ const callExpressionListener = (listeners: Listeners) => (node: TSESTree.CallExp
     const callee: TSESTree.MemberExpression = <TSESTree.MemberExpression>node.callee;
     const listenerType = (<TSESTree.Identifier>callee.property)?.name as ListenerType;
 
-    if ([ListenerType.ADD_EVENT_LISTENER, ListenerType.REMOVE_EVENT_LISTENER].includes(listenerType)) {
+    if ([...ADD_LISTENERS, ...REMOVE_LISTENERS, ListenerType.REMOVE_ALL_LISTENERS].includes(listenerType)) {
       const element = parseMemberExpression(callee);
-      const eventName = (<TSESTree.Literal>node.arguments[0]).value;
+      const eventName =
+        ListenerType.REMOVE_ALL_LISTENERS !== listenerType ? (<TSESTree.Literal>node.arguments[0]).value : '_all_';
       const handler = <TSESTree.Expression>node.arguments[1];
 
       if (listenerType === ListenerType.ADD_EVENT_LISTENER) {
@@ -143,7 +153,7 @@ const callExpressionListener = (listeners: Listeners) => (node: TSESTree.CallExp
         func = ARROW_FUNCTION;
       } else if (isNodeIdentifier(handler)) {
         func = (<TSESTree.Identifier>handler).name;
-      } else {
+      } else if (handler) {
         func = parseMemberExpression(<TSESTree.MemberExpression>handler);
       }
 
@@ -165,16 +175,18 @@ const callExpressionListener = (listeners: Listeners) => (node: TSESTree.CallExp
 
 const programListener =
   (ruleName: RuleType, listeners: Listeners, context: TSESLint.RuleContext<string, unknown[]>) => () => {
-    const addListeners = listeners[ListenerType.ADD_EVENT_LISTENER] ?? {};
-    const removeListeners = listeners[ListenerType.REMOVE_EVENT_LISTENER] ?? {};
+    const addListenersPre = ADD_LISTENERS.map((listenerName) => listeners[listenerName] ?? {});
+    const addListeners: ListenedElements = Object.assign({}, ...addListenersPre);
+    const removeListenersPre = REMOVE_LISTENERS.map((listerName) => listeners[listerName] ?? {});
+    const removeListeners: ListenedElements = Object.assign({}, ...removeListenersPre);
+    const removeAllListeners = listeners[ListenerType.REMOVE_ALL_LISTENERS] ?? {};
 
     Object.keys(addListeners).forEach((element) => {
       const addEvents = addListeners[element];
       const removeEvents = removeListeners[element];
-
+      const removeAllEvents = removeAllListeners[element];
       Object.entries(addEvents).forEach(([eventName, { func, loc, hasUseCapture }]) => {
-        const event = removeEvents?.[eventName];
-
+        const event = removeEvents?.[eventName] ?? removeAllEvents?.[0];
         switch (ruleName) {
           case RuleType.MissingRemoveEventListener:
             if (!event) {
@@ -183,16 +195,16 @@ const programListener =
             break;
 
           case RuleType.InlineFunctionEventListener:
-            if (isProhibitedHandler(func)) {
+            if (isProhibitedHandler(func) && (!event || event.func !== undefined)) {
               reportProhibitedListener(context, element, eventName, func, loc);
             }
             break;
 
           case RuleType.MatchingRemoveEventListener:
-            if (event && event.func !== func) {
+            if (event && event.func !== func && event.func !== undefined) {
               reportListenersDoNoMatch(context, element, eventName, func, event.func, loc, false);
             }
-            if (event && event.func === func && hasUseCapture && !event.hasUseCapture) {
+            if (event && event.func === func && hasUseCapture && !event.hasUseCapture && event.func !== undefined) {
               reportListenersDoNoMatch(context, element, eventName, func, event.func, loc, hasUseCapture);
             }
             break;
