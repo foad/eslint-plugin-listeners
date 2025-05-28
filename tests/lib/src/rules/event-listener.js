@@ -62,22 +62,27 @@ const reportProhibitedListener = (context, element, eventName, type, loc) => {
     });
 };
 const callExpressionListener = (listeners) => (node) => {
-    var _a, _b, _c;
+    var _a, _b, _c, _d, _e;
     if ((0, utils_1.isNodeMemberExpression)(node.callee)) {
         const callee = node.callee;
         const listenerType = (_a = callee.property) === null || _a === void 0 ? void 0 : _a.name;
         if ([...ADD_LISTENERS, ...REMOVE_LISTENERS, ListenerType.REMOVE_ALL_LISTENERS].includes(listenerType)) {
             const element = (0, utils_1.parseMemberExpression)(callee);
-            const eventName = ListenerType.REMOVE_ALL_LISTENERS !== listenerType ? node.arguments[0].value : '_all_';
+            const eventName = ListenerType.REMOVE_ALL_LISTENERS !== listenerType
+                ? (_c = (_b = node.arguments) === null || _b === void 0 ? void 0 : _b[0]) === null || _c === void 0 ? void 0 : _c.value
+                : '_all_';
             const handler = node.arguments[1];
             if (listenerType === ListenerType.ADD_EVENT_LISTENER) {
-                const params = (_c = (_b = node.arguments) === null || _b === void 0 ? void 0 : _b[2]) === null || _c === void 0 ? void 0 : _c.properties;
+                const params = (_e = (_d = node.arguments) === null || _d === void 0 ? void 0 : _d[2]) === null || _e === void 0 ? void 0 : _e.properties;
                 if (params && params.length) {
                     const isOnce = params.some((param) => param.key.name === 'once' && param.value.value);
                     if (isOnce) {
                         return;
                     }
                 }
+            }
+            if (!eventName) {
+                return;
             }
             let func;
             if ((0, utils_1.isNodeFunctionExpression)(handler)) {
