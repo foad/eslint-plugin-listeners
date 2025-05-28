@@ -114,7 +114,7 @@ const programListener = (ruleName, listeners, context) => () => {
         const removeAllEvents = removeAllListeners[element];
         Object.entries(addEvents).forEach(([eventName, { func, loc, hasUseCapture }]) => {
             var _a;
-            const event = (_a = removeEvents === null || removeEvents === void 0 ? void 0 : removeEvents[eventName]) !== null && _a !== void 0 ? _a : removeAllEvents === null || removeAllEvents === void 0 ? void 0 : removeAllEvents[0];
+            const event = (_a = removeEvents === null || removeEvents === void 0 ? void 0 : removeEvents[eventName]) !== null && _a !== void 0 ? _a : removeAllEvents;
             switch (ruleName) {
                 case utils_1.RuleType.MissingRemoveEventListener:
                     if (!event) {
@@ -127,7 +127,7 @@ const programListener = (ruleName, listeners, context) => () => {
                     }
                     break;
                 case utils_1.RuleType.MatchingRemoveEventListener:
-                    if (event && event.func !== func && event.func !== undefined) {
+                    if (event && event.func !== func && event.func !== undefined && typeof event.func === 'string') {
                         reportListenersDoNoMatch(context, element, eventName, func, event.func, loc, false);
                     }
                     if (event && event.func === func && hasUseCapture && !event.hasUseCapture && event.func !== undefined) {

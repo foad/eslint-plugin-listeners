@@ -186,7 +186,7 @@ const programListener =
       const removeEvents = removeListeners[element];
       const removeAllEvents = removeAllListeners[element];
       Object.entries(addEvents).forEach(([eventName, { func, loc, hasUseCapture }]) => {
-        const event = removeEvents?.[eventName] ?? removeAllEvents?.[0];
+        const event = removeEvents?.[eventName] ?? removeAllEvents;
         switch (ruleName) {
           case RuleType.MissingRemoveEventListener:
             if (!event) {
@@ -201,7 +201,7 @@ const programListener =
             break;
 
           case RuleType.MatchingRemoveEventListener:
-            if (event && event.func !== func && event.func !== undefined) {
+            if (event && event.func !== func && event.func !== undefined && typeof event.func === 'string') {
               reportListenersDoNoMatch(context, element, eventName, func, event.func, loc, false);
             }
             if (event && event.func === func && hasUseCapture && !event.hasUseCapture && event.func !== undefined) {
