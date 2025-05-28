@@ -1,6 +1,6 @@
 {
   "name": "eslint-plugin-listeners",
-  "version": "1.5.0",
+  "version": "1.5.1",
   "description": "ESLint plugin for preventing memory leaks around event listeners",
   "main": "lib/index.js",
   "scripts": {
