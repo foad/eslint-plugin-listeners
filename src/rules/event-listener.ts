@@ -132,7 +132,9 @@ const callExpressionListener = (listeners: Listeners) => (node: TSESTree.CallExp
     if ([...ADD_LISTENERS, ...REMOVE_LISTENERS, ListenerType.REMOVE_ALL_LISTENERS].includes(listenerType)) {
       const element = parseMemberExpression(callee);
       const eventName =
-        ListenerType.REMOVE_ALL_LISTENERS !== listenerType ? (<TSESTree.Literal>node.arguments[0]).value : '_all_';
+        ListenerType.REMOVE_ALL_LISTENERS !== listenerType
+          ? (<TSESTree.Literal | undefined>node.arguments?.[0])?.value
+          : '_all_';
       const handler = <TSESTree.Expression>node.arguments[1];
 
       if (listenerType === ListenerType.ADD_EVENT_LISTENER) {
@@ -143,6 +145,10 @@ const callExpressionListener = (listeners: Listeners) => (node: TSESTree.CallExp
             return;
           }
         }
+      }
+
+      if (!eventName) {
+        return;
       }
 
       let func: string;
