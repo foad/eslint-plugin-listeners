@@ -10,7 +10,7 @@
   },
   "repository": {
     "type": "git",
-    "url": "git@github.com:foad/eslint-plugin-listeners"
+    "url": "git+https://github.com/foad/eslint-plugin-listeners.git"
   },
   "keywords": [
     "eslint",
