@@ -2,7 +2,7 @@ import { createRule } from './rules/event-listener';
 
 import { RuleType } from './utils';
 
-module.exports = {
+export = {
   rules: {
     'no-missing-remove-event-listener': createRule(RuleType.MissingRemoveEventListener),
     'matching-remove-event-listener': createRule(RuleType.MatchingRemoveEventListener),
