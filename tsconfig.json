@@ -2,7 +2,7 @@
   "compilerOptions": {
     "module": "nodenext",
     "moduleResolution": "nodenext",
-    "noImplicitAny": true,
+    "strict": true,
     "removeComments": true,
     "preserveConstEnums": true,
     "target": "es2017",

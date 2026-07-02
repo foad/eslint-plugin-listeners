@@ -30,12 +30,12 @@ type REMOVE_LISTENERS_TYPE = (typeof REMOVE_LISTENERS)[number];
 const PLAIN_FUNCTION = 'plain function';
 const ARROW_FUNCTION = 'arrow function';
 
-const isProhibitedHandler = (type: string) => type === PLAIN_FUNCTION || type === ARROW_FUNCTION;
+const isProhibitedHandler = (type: string | undefined) => type === PLAIN_FUNCTION || type === ARROW_FUNCTION;
 
 interface ListenedElements {
   [key: string]: {
     [key: string]: {
-      func: string;
+      func: string | undefined;
       loc: TSESTree.SourceLocation;
       isOnce?: boolean;
       hasUseCapture?: boolean;
@@ -131,6 +131,9 @@ const callExpressionListener = (listeners: Listeners) => (node: TSESTree.CallExp
 
     if ([...ADD_LISTENERS, ...REMOVE_LISTENERS, ListenerType.REMOVE_ALL_LISTENERS].includes(listenerType)) {
       const element = parseMemberExpression(callee);
+      if (!element) {
+        return;
+      }
       const eventName =
         ListenerType.REMOVE_ALL_LISTENERS !== listenerType
           ? (<TSESTree.Literal | undefined>node.arguments?.[0])?.value
@@ -151,7 +154,7 @@ const callExpressionListener = (listeners: Listeners) => (node: TSESTree.CallExp
         return;
       }
 
-      let func: string;
+      let func: string | undefined;
 
       if (isNodeFunctionExpression(handler)) {
         func = PLAIN_FUNCTION;
@@ -207,10 +210,23 @@ const programListener =
             break;
 
           case RuleType.MatchingRemoveEventListener:
-            if (event && event.func !== func && event.func !== undefined && typeof event.func === 'string') {
+            if (
+              func !== undefined &&
+              event &&
+              event.func !== func &&
+              event.func !== undefined &&
+              typeof event.func === 'string'
+            ) {
               reportListenersDoNoMatch(context, element, eventName, func, event.func, loc, false);
             }
-            if (event && event.func === func && hasUseCapture && !event.hasUseCapture && event.func !== undefined) {
+            if (
+              func !== undefined &&
+              event &&
+              event.func === func &&
+              hasUseCapture &&
+              !event.hasUseCapture &&
+              event.func !== undefined
+            ) {
               reportListenersDoNoMatch(context, element, eventName, func, event.func, loc, hasUseCapture);
             }
             break;
