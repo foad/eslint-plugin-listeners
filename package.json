@@ -3,6 +3,9 @@
   "version": "1.5.2",
   "description": "ESLint plugin for preventing memory leaks around event listeners",
   "main": "lib/index.js",
+  "files": [
+    "lib"
+  ],
   "scripts": {
     "build": "tsc --project ./src/tsconfig.json",
     "lint": "eslint . --color",
