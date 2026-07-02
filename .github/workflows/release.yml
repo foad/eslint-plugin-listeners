@@ -32,6 +32,8 @@ jobs:
         run: yarn test
       - name: Build
         run: yarn build
+      - name: Upgrade npm # Required for Trusted Publisher support
+        run: npm install -g npm@latest
       - name: Publish to npm
         run: npm publish --provenance
       - name: Create GitHub release
