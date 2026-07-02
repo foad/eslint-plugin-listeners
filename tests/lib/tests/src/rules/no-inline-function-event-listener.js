@@ -9,12 +9,13 @@ const event_listener_1 = require("../../../src/rules/event-listener");
 const utils_1 = require("../../../src/utils");
 rule_tester_1.RuleTester.afterAll = mocha_1.default.after;
 const ruleTester = new rule_tester_1.RuleTester({
-    parserOptions: {
-        ecmaFeatures: {
-            jsx: true,
+    languageOptions: {
+        parserOptions: {
+            ecmaFeatures: {
+                jsx: true,
+            },
         },
     },
-    parser: '@typescript-eslint/parser',
 });
 ruleTester.run('inline-function-event-listener', (0, event_listener_1.createRule)(utils_1.RuleType.InlineFunctionEventListener), {
     valid: [
@@ -26,7 +27,7 @@ ruleTester.run('inline-function-event-listener', (0, event_listener_1.createRule
 
       class App {
         handleRootNodeClick = () => {
-          console.log('click') // eslint-disable-line no-console
+          console.log('click')
         }
 
         componentDidMount() {

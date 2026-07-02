@@ -148,7 +148,6 @@ const createRule = (ruleName) => ({
         type: 'problem',
         docs: {
             description: (0, utils_1.getDescription)(ruleName),
-            recommended: 'recommended',
             url: 'https://github.com/foad/eslint-plugin-listeners',
         },
         messages: {

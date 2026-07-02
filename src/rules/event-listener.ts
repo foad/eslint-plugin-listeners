@@ -224,7 +224,6 @@ export const createRule = (ruleName: RuleType): TSESLint.RuleModule<string, unkn
     type: 'problem',
     docs: {
       description: getDescription(ruleName),
-      recommended: 'recommended',
       url: 'https://github.com/foad/eslint-plugin-listeners',
     },
     messages: {

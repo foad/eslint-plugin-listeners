@@ -5,12 +5,13 @@ import { RuleType } from '../../../src/utils';
 
 RuleTester.afterAll = mocha.after;
 const ruleTester = new RuleTester({
-  parserOptions: {
-    ecmaFeatures: {
-      jsx: true,
+  languageOptions: {
+    parserOptions: {
+      ecmaFeatures: {
+        jsx: true,
+      },
     },
   },
-  parser: '@typescript-eslint/parser',
 });
 
 ruleTester.run('no-missing-remove-event-listener', createRule(RuleType.MissingRemoveEventListener), {
@@ -23,7 +24,7 @@ ruleTester.run('no-missing-remove-event-listener', createRule(RuleType.MissingRe
 
     class App {
       handleRootNodeClick = () => {
-        console.log('click') // eslint-disable-line no-console
+        console.log('click')
       }
 
       componentDidMount() {
@@ -51,7 +52,7 @@ ruleTester.run('no-missing-remove-event-listener', createRule(RuleType.MissingRe
 
     class App {
       handleRootNodeClick = () => {
-        console.log('click') // eslint-disable-line no-console
+        console.log('click')
       }
 
       componentDidMount() {

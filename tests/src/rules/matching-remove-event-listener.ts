@@ -5,12 +5,13 @@ import { RuleType } from '../../../src/utils';
 
 RuleTester.afterAll = mocha.after;
 const ruleTester = new RuleTester({
-  parserOptions: {
-    ecmaFeatures: {
-      jsx: true,
+  languageOptions: {
+    parserOptions: {
+      ecmaFeatures: {
+        jsx: true,
+      },
     },
   },
-  parser: '@typescript-eslint/parser',
 });
 
 ruleTester.run('matching-remove-event-listener', createRule(RuleType.MatchingRemoveEventListener), {
