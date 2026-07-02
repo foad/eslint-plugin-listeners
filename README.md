@@ -65,7 +65,3 @@ We also support a "strict" settings which enables all of the rules for you
 - [no-missing-remove-event-listener](docs/rules/no-missing-remove-event-listener.md)
 - [matching-remove-event-listener](docs/rules/matching-remove-event-listener.md)
 - [no-inline-function-event-listener](docs/rules/no-inline-function-event-listener.md)
-
-## Credits
-
-This package is based off of https://github.com/tipsi/eslint-plugin-tipsi
