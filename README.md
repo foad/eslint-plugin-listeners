@@ -2,27 +2,57 @@
 
 ![Test](https://github.com/foad/eslint-plugin-listeners/workflows/Test/badge.svg)
 
-This project aims to provide formatting rules to prevent memory leaks around event listeners
+This project aims to provide formatting rules to prevent memory leaks around event listeners.
+
+## Requirements
+
+- ESLint `>= 8.57`
+- Node.js `>= 20`
 
 ## Installation
 
-You'll first need to install [ESLint](http://eslint.org):
-
 ```
-$ yarn add eslint --dev
+$ yarn add --dev eslint eslint-plugin-listeners
 ```
 
-Next, install `eslint-plugin-listeners`:
-
-```
-$ yarn add eslint-plugin-listeners --dev
-```
-
-**Note:** If you installed ESLint globally (using the `-g` flag) then you must also install `eslint-plugin-listeners` globally.
+If you installed ESLint globally (using `-g`) then install `eslint-plugin-listeners` globally too.
 
 ## Usage
 
-Add `listeners` to the plugins section of your `.eslintrc` configuration file. You can omit the `eslint-plugin-` prefix:
+### Flat config (`eslint.config.js`, ESLint 9+)
+
+Use a shipped preset:
+
+```js
+import listeners from 'eslint-plugin-listeners';
+
+export default [
+  ...listeners.configs['flat/recommended'],
+];
+```
+
+Available presets: `flat/recommended`, `flat/strict`.
+
+Or wire rules up manually:
+
+```js
+import listeners from 'eslint-plugin-listeners';
+
+export default [
+  {
+    plugins: { listeners },
+    rules: {
+      'listeners/no-missing-remove-event-listener': 'error',
+      'listeners/matching-remove-event-listener': 'error',
+      'listeners/no-inline-function-event-listener': 'error',
+    },
+  },
+];
+```
+
+### Legacy config (`.eslintrc`, ESLint 8)
+
+Add `listeners` to the plugins section (the `eslint-plugin-` prefix is optional):
 
 ```json
 {
@@ -30,7 +60,17 @@ Add `listeners` to the plugins section of your `.eslintrc` configuration file. Y
 }
 ```
 
-Then configure the rules you want to use under the rules section.
+Then extend a shipped preset:
+
+```json
+{
+  "extends": ["plugin:listeners/recommended"]
+}
+```
+
+Available presets: `recommended`, `strict`.
+
+Or configure the rules directly:
 
 ```json
 {
@@ -39,24 +79,6 @@ Then configure the rules you want to use under the rules section.
     "listeners/matching-remove-event-listener": "error",
     "listeners/no-inline-function-event-listener": "error"
   }
-}
-```
-
-_or_
-
-You can use our "recommended" settings which enables most of the rules for you
-
-```json
-{
-  "extends": ["plugin:listeners/recommended"]
-}
-```
-
-We also support a "strict" settings which enables all of the rules for you
-
-```json
-{
-  "extends": ["plugin:listeners/strict"]
 }
 ```
 
