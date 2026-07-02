@@ -7,10 +7,5 @@
   "extends": [
     "plugin:@typescript-eslint/recommended",
     "plugin:prettier/recommended"
-  ],
-  "settings": {
-    "import/resolver": {
-      "typescript": {}
-    }
-  }
+  ]
 }
