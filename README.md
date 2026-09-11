@@ -1,6 +1,6 @@
 # eslint-plugin-listeners
 
-![Test](https://github.com/foad/eslint-plugin-listeners/workflows/Test/badge.svg)
+![Test](https://github.com/foad/eslint-plugin-listeners/workflows/Test/badge.svg) ![NPM Downloads](https://img.shields.io/npm/dm/eslint-plugin-listeners)
 
 This project aims to provide formatting rules to prevent memory leaks around event listeners.
 
